@@ -1,0 +1,22 @@
+- symlink instead of copying in merge-tree and filter
+  - probably must not symlink to other symlink, as we may exceed max level (32 on Mac, 40 on Linux)
+    - benchmark says we also incur perf hit on indirection
+    - so need to use lstat to check if source is symlink, and if so, readlink and resolve
+      - some perf overhead here, but should be ok, is further optimizable too
+- resolve all or absolute?
+  - relative doesn't seem terribly important, so can resolve?
+  --> resolve all - different behavior on relative vs absolute is Just Wrong
+- Windows?
+  - needs elevated privileges, and I'm worried about pitfalls
+  - perhaps let's just not try to symlink on Windows ever
+- symlinks to dirs
+  - follow (so using stat, not lstat, in walk-sync)
+
+
+To do for change:
+
+add symlink resolver on build
+make merge-tree and filter use symlinks
+  on Windows, copy
+release Broccoli
+release plugins a week later

@@ -3,6 +3,8 @@ var broccoli = require('..')
 var Builder = broccoli.Builder
 var RSVP = require('rsvp')
 var Promise = RSVP.Promise
+var broccoliFixturify = require('broccoli-fixturify')
+var fixturify = require('fixturify')
 
 RSVP.on('error', function(error) {
   throw error
@@ -89,6 +91,38 @@ test('Builder', function (t) {
       })
 
       t.end()
+    })
+
+    test('symlink resolution', function (t) {
+      var inputTree = ({
+        file: 'foo',
+        symlinkedFile: ['file'],
+
+        dir: { file: 'bar' },
+        symlinkedDir: ['dir'] ,
+
+        brokenSymlink: ['doesnotexist']
+      })
+
+      var expectedTree = ({
+        file: 'foo',
+        symlinkedFile: 'foo',
+
+        dir: { file: 'bar' },
+        symlinkedDir: { file: 'bar' },
+
+        brokenSymlink: ['doesnotexist']
+      })
+
+      var builder = new Builder(broccoliFixturify.fixtureToTree(inputTree))
+      builder.build()
+        .then(function (hash) {
+          t.deepEqual(fixturify.readSync(hash.directory), expectedTree)
+          t.end()
+        })
+        .finally(function () {
+          builder.cleanup()
+        })
     })
   })
 
